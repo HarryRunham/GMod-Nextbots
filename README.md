@@ -1,5 +1,5 @@
 # GMod-Nextbots
-Nextbot entities for use in Garry's Mod (also known as GMod/Gmod). Code in Lua. Entities not currently available on the steam workshop.
+Nextbot entities for use in Garry's Mod (also known as GMod/Gmod). Code in Lua. Entities not currently available on the steam workshop, but you can try them yourself by copying the appropriate folder from this repository into your steamapps\common\GarrysMod\garrysmod\addons folder, then spawning them in using the spawn menu (you can find them in "Abyss Nextbots" under NPCs).
 
 In the modern Garry's Mod community "nextbot" specifically refers to entities with a 2D image who generally chase you around a map. A craze began online (somewhere in September?) around these nextbots, leading to a wide variety of new nextbots being created with various themes and behaviours. In general, the complexity of nextbot behaviour has increased with time. I was inspired to have a go at creating my own. I had no clue how Garry's Mod addons were created but figured it would be an interesting challenge that might result in an exciting addon other people can play with one day.
 

@@ -21,7 +21,7 @@ function ENT:Initialize()
     self.chasing = false
     self.ambushing = false
     self.enraged = false
-    self.tired = false
+    self.tired = false --. appears to always be false.
     self.escapedchases = 0
  
     self.loaded_amb_sounds = {}
@@ -195,6 +195,38 @@ function ENT:StalkEnemy( options )
 	return "ok"
 end
 
+function ENT:AmIEnraged() --. See documentation for the effect of this function (explanation yet to be added, will be available later). May edit the ragecalc conditions later based on gameplay
+    print("AmIEnraged function called")
+    print("Escaped chase count:", self.escapedchases)
+    local ragecalc = math.random(1,20) --. should probably be a local variable
+    print("ragecalc is", ragecalc)
+    if self.escapedchases == 0 and ragecalc == 1 then --. 0.05 chance of becoming enraged
+        print("Returning true")
+        return true
+    elseif self.escapedchases == 1 and ragecalc <= 2 then --. 0.1 chance of becoming enraged
+        print("Returning true")
+        return true
+    elseif self.escapedchases == 2 and ragecalc <= 8 then --. 0.4 chance of becoming enraged
+        print("Returning true")
+        return true
+    elseif self.escapedchases == 3 and ragecalc <= 14 then --. 0.7 chance of becoming enraged
+        print("Returning true")
+        return true
+    elseif self.escapedchases == 4 and ragecalc <= 16 then --. 0.8 chance of becoming enraged
+        print("Returning true")
+        return true
+    elseif self.escapedchases == 5 and ragecalc <= 18 then --. 0.9 chance of becoming enraged
+        print("Returning true")
+        return true
+    elseif self.escapedchases == 6 then --. 100% chance of becoming enraged
+        print("Returning true")
+        return true
+    else
+        print("Returning false")
+        return false
+    end
+end
+
 function ENT:ChasePlayer()
     local slowchoice = math.random(0, 3)
     print("Chasing player, if 1 then enemy will slow down when too close", slowchoice) --. i.e. 25% chance of being nice to player
@@ -208,9 +240,16 @@ function ENT:ChasePlayer()
 
     self.stopchasing = false
 
-    if self.escapedchases >= 4 then
-        print("ENRAGED")
+    --. if self.escapedchases >= 4 then
+        --. print("Enraged mode condition satisfied")
+        --. self.enraged = true
+        --. print("Enraged mode activated")
+        --. self.escapedchases = 0
+    --. end
+
+    if self:AmIEnraged() then
         self.enraged = true
+        print("Enraged mode activated")
         self.escapedchases = 0
     end
 
@@ -270,10 +309,10 @@ function ENT:ChasePlayer()
 
         if (!self:GetPlayerVisible() and chasing_timer > chasing_time) then
             self.stopchasing = true
-            self.enraged = false
-            print("Chase stopped THIS IS JUST BEFORE THE COMMENTED OUT CODE")
-            --self.escapedchases = self.escapedchases + 1
-            --print("Increased escaped chases count, new:", self.escapedchases) --. print statement was wrong here before because it was on the line before self.escapedchases was incremented. "Increasing" -> "Increased". Commented out this code for now because I think it is what is causing self.escapedchases to increment twice - and therefore what causes terminus to become enraged every 3 chases instead of every 5 like the code would have you believe.
+            --. self.enraged = false
+            --. print("Chase stopped THIS IS JUST BEFORE THE COMMENTED OUT CODE")
+            --. self.escapedchases = self.escapedchases + 1
+            --. print("Increased escaped chases count, new:", self.escapedchases) --. print statement was wrong here before because it was on the line before self.escapedchases was incremented. "Increasing" -> "Increased". Commented out this code for now because I think it is what is causing self.escapedchases to increment twice - and therefore what causes terminus to become enraged every 3 chases instead of every 5 like the code would have you believe.
         end
 
         local stuckTimer = 0
@@ -289,9 +328,12 @@ function ENT:ChasePlayer()
         coroutine.yield()
 	end
 
-    print("Chase stopped")
-    self.escapedchases = self.escapedchases + 1
-    print("Increasing escaped chases count, new:", self.escapedchases) --. print statement was wrong here before because it was on the line before self.escapedchases was incremented. "Increasing" -> "Increased"
+    print("Stopping chase")
+    if (!self.enraged) then
+        self.escapedchases = self.escapedchases + 1
+        print("Increasing escaped chases count, new:", self.escapedchases)
+    end
+    
     self.enraged = false
     self:TeleportToRandom()
 	return "ok"

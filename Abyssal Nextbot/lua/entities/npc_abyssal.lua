@@ -206,10 +206,10 @@ function ENT:AmIEnraged() --. See documentation for the effect of this function 
     elseif self.escapedchases == 1 and ragecalc <= 2 then --. 0.1 chance of becoming enraged
         print("Returning true")
         return true
-    elseif self.escapedchases == 2 and ragecalc <= 8 then --. 0.4 chance of becoming enraged
+    elseif self.escapedchases == 2 and ragecalc <= 6 then --. 0.3 chance of becoming enraged
         print("Returning true")
         return true
-    elseif self.escapedchases == 3 and ragecalc <= 14 then --. 0.7 chance of becoming enraged
+    elseif self.escapedchases == 3 and ragecalc <= 12 then --. 0.6 chance of becoming enraged
         print("Returning true")
         return true
     elseif self.escapedchases == 4 and ragecalc <= 16 then --. 0.8 chance of becoming enraged
@@ -247,11 +247,11 @@ function ENT:ChasePlayer()
     end
 
     if !self.enraged then
-        self.loco:SetAcceleration(375) --. original: 375
-        self.loco:SetDesiredSpeed(1000) --. original: 1000
+        self.loco:SetAcceleration(900) --. original: 375
+        self.loco:SetDesiredSpeed(500) --. original: 1000
     else --. i.e. enraged
-        self.loco:SetAcceleration(700) --. original: 700
-        self.loco:SetDesiredSpeed(2000) --. original: 2000
+        self.loco:SetAcceleration(1400) --. original: 700
+        self.loco:SetDesiredSpeed(3000) --. original: 2000
     end
 
     local options = options or {}
@@ -264,7 +264,7 @@ function ENT:ChasePlayer()
         return "failed"
     end
 
-    local chasing_time = 15
+    local chasing_time = 25
     local chasing_timer = 0
 
     self.LastPathRecompute = 0
@@ -291,9 +291,9 @@ function ENT:ChasePlayer()
         if self:VectorDistance(self:GetPos(), self:GetEnemy():GetPos()) < 150 and !self.enraged then
             if slowchoice == 1 then
                 print("Slowing down to give player room")
-                self.loco:SetDesiredSpeed(400) --. original: 400
+                self.loco:SetDesiredSpeed(300) --. original: 400
             else
-                self.loco:SetDesiredSpeed(1000) --. original: 1000
+                self.loco:SetDesiredSpeed(500) --. maintain normal chase speed, original: 1000
             end
         end
 
@@ -429,12 +429,14 @@ end
 
 function ENT:GoToRandomPoint()
 
+    print("GoToRandomPoint called")
+
     self.waiting = true
     self.walking = true
     self.chasing = false
     self.stalking = false
     
-    self.loco:SetAcceleration(400) --. original: 400
+    self.loco:SetAcceleration(900) --. original: 400
     self.loco:SetDesiredSpeed(700) --. original: 700
     
     local options = options or {}
@@ -562,6 +564,7 @@ function ENT:Hide()
 
     -- roll a dice between going back to stalking or ambushing
     if choice == 2 then
+        print("Planning an ambush")
         self:Ambush()
     end
 
@@ -570,7 +573,7 @@ end
 function ENT:Ambush()
     print("Ambush at", self:GetPos())
     self.ambushing = true
-    self.loco:SetDesiredSpeed(0) --. original: 0
+    self.loco:SetDesiredSpeed(0) --. don't think this is necessary.
     self:StopAllAmbSounds()
     self:StopAllSelfSounds()
 

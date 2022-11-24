@@ -21,9 +21,9 @@ function ENT:Initialize()
     self.chasing = false
     self.ambushing = false
     self.enraged = false
-    self.tired = false --. appears to always be false.
+    
     self.escapedchases = 0
- 
+    
     self.loaded_amb_sounds = {}
     self.loaded_amb_sounds[1] = CreateSound(game.GetWorld(), "AbyssalChasingAmbience.wav")
     self.loaded_amb_sounds[2] = CreateSound(game.GetWorld(), "stalk_ambience_1.wav") --. appears to be unused
@@ -33,10 +33,10 @@ function ENT:Initialize()
     self.loaded_amb_sounds[6] = CreateSound(game.GetWorld(), "stalk_end.wav") --. appears to be unused
     self.loaded_amb_sounds[7] = CreateSound(self, "AbyssalStalking1.wav")
     self.loaded_amb_sounds[8] = CreateSound(self, "AbyssalStalking2.wav")
-
+    
     self.loaded_sounds = {}
     self.loaded_sounds[1] = CreateSound(self, "AbyssalChasing.wav")
-
+    
     self.enrage_sounds = {}
     self.enrage_sounds[1] = CreateSound(game.GetWorld(), "AbyssalEnraged.wav")
 end
@@ -132,8 +132,8 @@ function ENT:StalkEnemy( options )
     self.pre_stalk_time = 15
     self.pre_stalk_timer = 0
 
-    self.loco:SetAcceleration(200)
-    self.loco:SetDesiredSpeed(300)
+    self.loco:SetAcceleration(200) --. original: 200
+    self.loco:SetDesiredSpeed(300) --. original: 300
 
 	local options = options or {}
 	self.path = Path("Chase")
@@ -198,7 +198,7 @@ end
 function ENT:AmIEnraged() --. See documentation for the effect of this function (explanation yet to be added, will be available later). May edit the ragecalc conditions later based on gameplay
     print("AmIEnraged function called")
     print("Escaped chase count:", self.escapedchases)
-    local ragecalc = math.random(1,20) --. should probably be a local variable
+    local ragecalc = math.random(1,20)
     print("ragecalc is", ragecalc)
     if self.escapedchases == 0 and ragecalc == 1 then --. 0.05 chance of becoming enraged
         print("Returning true")
@@ -240,28 +240,18 @@ function ENT:ChasePlayer()
 
     self.stopchasing = false
 
-    --. if self.escapedchases >= 4 then
-        --. print("Enraged mode condition satisfied")
-        --. self.enraged = true
-        --. print("Enraged mode activated")
-        --. self.escapedchases = 0
-    --. end
-
     if self:AmIEnraged() then
         self.enraged = true
         print("Enraged mode activated")
         self.escapedchases = 0
     end
 
-    if !self.enraged and !self.tired then
-        self.loco:SetAcceleration(375)
-        self.loco:SetDesiredSpeed(1000)
-    elseif self.enraged then
-        self.loco:SetAcceleration(700)
-        self.loco:SetDesiredSpeed(2000)
-    elseif self.tired then
-        self.loco:SetAcceleration(100)
-        self.loco:SetDesiredSpeed(500)
+    if !self.enraged then
+        self.loco:SetAcceleration(375) --. original: 375
+        self.loco:SetDesiredSpeed(1000) --. original: 1000
+    else --. i.e. enraged
+        self.loco:SetAcceleration(700) --. original: 700
+        self.loco:SetDesiredSpeed(2000) --. original: 2000
     end
 
     local options = options or {}
@@ -301,18 +291,14 @@ function ENT:ChasePlayer()
         if self:VectorDistance(self:GetPos(), self:GetEnemy():GetPos()) < 150 and !self.enraged then
             if slowchoice == 1 then
                 print("Slowing down to give player room")
-                self.loco:SetDesiredSpeed(400)
+                self.loco:SetDesiredSpeed(400) --. original: 400
             else
-                self.loco:SetDesiredSpeed(1000)
+                self.loco:SetDesiredSpeed(1000) --. original: 1000
             end
         end
 
         if (!self:GetPlayerVisible() and chasing_timer > chasing_time) then
             self.stopchasing = true
-            --. self.enraged = false
-            --. print("Chase stopped THIS IS JUST BEFORE THE COMMENTED OUT CODE")
-            --. self.escapedchases = self.escapedchases + 1
-            --. print("Increased escaped chases count, new:", self.escapedchases) --. print statement was wrong here before because it was on the line before self.escapedchases was incremented. "Increasing" -> "Increased". Commented out this code for now because I think it is what is causing self.escapedchases to increment twice - and therefore what causes terminus to become enraged every 3 chases instead of every 5 like the code would have you believe.
         end
 
         local stuckTimer = 0
@@ -447,11 +433,9 @@ function ENT:GoToRandomPoint()
     self.walking = true
     self.chasing = false
     self.stalking = false
-
-    if !self.tired then
-        self.loco:SetAcceleration(400)
-        self.loco:SetDesiredSpeed(700)
-    end
+    
+    self.loco:SetAcceleration(400) --. original: 400
+    self.loco:SetDesiredSpeed(700) --. original: 700
     
     local options = options or {}
 	self.path = Path("Chase")
@@ -586,7 +570,7 @@ end
 function ENT:Ambush()
     print("Ambush at", self:GetPos())
     self.ambushing = true
-    self.loco:SetDesiredSpeed(0)
+    self.loco:SetDesiredSpeed(0) --. original: 0
     self:StopAllAmbSounds()
     self:StopAllSelfSounds()
 

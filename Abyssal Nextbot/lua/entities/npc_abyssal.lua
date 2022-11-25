@@ -27,20 +27,16 @@ function ENT:Initialize()
     
     self.loaded_amb_sounds = {}
     self.loaded_amb_sounds[1] = CreateSound(game.GetWorld(), "AbyssalChasingAmbience.wav")
-    self.loaded_amb_sounds[2] = CreateSound(game.GetWorld(), "stalk_ambience_1.wav") --. appears to be unused
-    self.loaded_amb_sounds[3] = CreateSound(game.GetWorld(), "stalk_ambience_2.wav") --. appears to be unused
-    self.loaded_amb_sounds[4] = CreateSound(game.GetWorld(), "stalk_ambience_3.wav") --. appears to be unused
-    self.loaded_amb_sounds[5] = CreateSound(game.GetWorld(), "stalk_ambience_4.wav") --. appears to be unused
-    self.loaded_amb_sounds[6] = CreateSound(game.GetWorld(), "stalk_end.wav") --. appears to be unused
-    self.loaded_amb_sounds[7] = CreateSound(self, "AbyssalStalking1.wav")
-    self.loaded_amb_sounds[8] = CreateSound(self, "AbyssalStalking2.wav")
+    self.loaded_amb_sounds[2] = CreateSound(self, "AbyssalStalking.wav")
     
     self.loaded_sounds = {}
     self.loaded_sounds[1] = CreateSound(self, "AbyssalChasing.wav")
     self.loaded_sounds[2] = CreateSound(game.GetWorld(), "AbyssalDeathNoise.wav")
+    self.loaded_sounds[3] = CreateSound(game.GetWorld(), "AbyssalChasingAmbienceEnd.wav")
     
     self.enrage_sounds = {}
     self.enrage_sounds[1] = CreateSound(game.GetWorld(), "AbyssalEnraged.wav")
+    self.enrage_sounds[2] = CreateSound(game.GetWorld(), "AbyssalEnragedEnd.wav")
 end
 
 local trace = {
@@ -112,6 +108,20 @@ function ENT:InstaGib()
         self.loaded_sounds[2]:Stop()
         self.loaded_sounds[2]:SetSoundLevel(0)
         self.loaded_sounds[2]:Play()
+        if self.chasing then
+            self.loaded_amb_sounds[1]:Stop()
+            self.loaded_sounds[3]:Stop()
+            self.loaded_sounds[3]:SetSoundLevel(0)
+            self.loaded_sounds[3]:Play()
+            print("Played AbyssalChasingAmbienceEnd.wav")
+            if self.enraged then
+                self.enrage_sounds[1]:Stop()
+                self.enrage_sounds[2]:Stop()
+                self.enrage_sounds[2]:SetSoundLevel(0)
+                self.enrage_sounds[2]:Play()
+                print("Played AbyssalEnragedEnd.wav")
+            end
+        end
         if self.chasefunctionactive then
             print("Killed whilst Abyssal was chasing or whilst relocating after a kill, setting self.escapedchases to -1")
             self.escapedchases = -1 --. ChasePlayer() increments self.escapedchases by 1 as one of its last actions, correcting this variable to 0 in the process
@@ -338,98 +348,69 @@ function ENT:ChasePlayer()
 	return "ok"
 end
 
-local chase_sound_clock = 0
-local chase_sound_time = 0
+local stalk_close_sound_clock = 0
+local stalk_close_sound_time = 0
 local amb_chase_sound_clock = 0
 local amb_chase_sound_time = 0
+local chase_sound_clock = 0
+local chase_sound_time = 0
 local enraged_sound_clock = 0
 local enraged_sound_time = 0
 
-local stalk_close_sound_clock = 0
-local stalk_close_sound_time = 0
-local stalk_sound_clock = 0
-local stalk_sound_time = 0
-
 function ENT:Sounds()
+    
     amb_chase_sound_clock = amb_chase_sound_clock + FrameTime()
     chase_sound_clock = chase_sound_clock + FrameTime()
     enraged_sound_clock = enraged_sound_clock + FrameTime()
     stalk_close_sound_clock = stalk_close_sound_clock + FrameTime()
-    stalk_sound_clock = stalk_sound_clock + FrameTime()
-
+    
     if (self.stalking or self.walking) then
         if (stalk_close_sound_clock > stalk_close_sound_time) then
             stalk_close_sound_clock = 0
-            self.loaded_amb_sounds[7]:Stop()
-            self.loaded_amb_sounds[8]:Stop()
-            local random_sound = math.random(7,8)
-            self.loaded_amb_sounds[random_sound]:SetSoundLevel(70)
-            self.loaded_amb_sounds[random_sound]:Play()
-            stalk_close_sound_time = SoundDuration("AbyssalStalking"..tostring(random_sound-6)..".wav")
-            --print("played close stalk ambsound, set end time to "..stalk_close_sound_time)
-        end
-    end
-
-    --if (self.walking or self.stalking) then
-    if (false) then
-        self.loaded_amb_sounds[1]:Stop()
-        self:StopAllSelfSounds()
-        if (stalk_sound_clock > stalk_sound_time) then
-            stalk_sound_clock = 0
             self.loaded_amb_sounds[2]:Stop()
-            self.loaded_amb_sounds[3]:Stop()
-            self.loaded_amb_sounds[4]:Stop()
-            self.loaded_amb_sounds[5]:Stop()
-            local random_sound = math.random(2,5)
-            self.loaded_amb_sounds[random_sound]:SetSoundLevel(0)
-            self.loaded_amb_sounds[random_sound]:Play()
-            stalk_sound_time = SoundDuration("stalk_ambience_"..tostring(random_sound-1)..".wav")
-            --print("played stalk ambsound, set end time to "..stalk_sound_time)
+            self.loaded_amb_sounds[2]:SetSoundLevel(70)
+            self.loaded_amb_sounds[2]:Play()
+            stalk_close_sound_time = SoundDuration("AbyssalStalking.wav")
+            print("Played AbyssalStalking.wav")
         end
     end
-
-    if (self.enraged) then
-        if (enraged_sound_clock > enraged_sound_time) then
-            self.enrage_sounds[1]:Stop()
-            enraged_sound_clock = 0
-            self.enrage_sounds[1]:SetSoundLevel(0)
-            enraged_sound_time = SoundDuration("AbyssalEnraged.wav")
-            self.enrage_sounds[1]:Play()
-            print("Played AbyssalEnraged.wav")
-        end
-    end
-
+    
     if (self.chasing) then
         if (amb_chase_sound_clock > amb_chase_sound_time) then
             self:StopAllAmbSounds()
             amb_chase_sound_clock = 0
+            self.loaded_amb_sounds[1]:Stop()
             self.loaded_amb_sounds[1]:SetSoundLevel(0)
-            amb_chase_sound_time = SoundDuration("AbyssalChasingAmbience.wav")
             self.loaded_amb_sounds[1]:Play()
+            amb_chase_sound_time = SoundDuration("AbyssalChasingAmbience.wav")
             print("Played AbyssalChasingAmbience.wav")
         end
         if (chase_sound_clock > chase_sound_time) then
-            self.loaded_sounds[1]:Stop()
             chase_sound_clock = 0
+            self.loaded_sounds[1]:Stop()
             self.loaded_sounds[1]:SetSoundLevel(70)
-            chase_sound_time = SoundDuration("AbyssalChasing.wav")
             self.loaded_sounds[1]:Play()
+            chase_sound_time = SoundDuration("AbyssalChasing.wav")
             print("Played AbyssalChasing.wav")
         end
     end
+    
+    if (self.enraged) then
+        if (enraged_sound_clock > enraged_sound_time) then
+            enraged_sound_clock = 0
+            self.enrage_sounds[1]:Stop()
+            self.enrage_sounds[1]:SetSoundLevel(0)
+            self.enrage_sounds[1]:Play()
+            enraged_sound_time = SoundDuration("AbyssalEnraged.wav")
+            print("Played AbyssalEnraged.wav")
+        end
+    end
+    
 end
 
 function ENT:StopAllAmbSounds()
     for k,v in pairs(self.loaded_amb_sounds) do
         v:Stop()
-    end
-end
-
-function ENT:StopAllAmbSoundsRange(min, max)
-    for k,v in pairs(self.loaded_amb_sounds) do
-        if (k <= min and k >= max) then
-            v:Stop()
-        end
     end
 end
 

@@ -21,6 +21,7 @@ function ENT:Initialize()
     self.chasing = false
     self.ambushing = false
     self.enraged = false
+    self.chasefunctionactive = false
     
     self.escapedchases = 0
     
@@ -36,6 +37,7 @@ function ENT:Initialize()
     
     self.loaded_sounds = {}
     self.loaded_sounds[1] = CreateSound(self, "AbyssalChasing.wav")
+    self.loaded_sounds[2] = CreateSound(game.GetWorld(), "AbyssalDeathNoise.wav")
     
     self.enrage_sounds = {}
     self.enrage_sounds[1] = CreateSound(game.GetWorld(), "AbyssalEnraged.wav")
@@ -106,6 +108,17 @@ end
 function ENT:InstaGib()
     if (self:VectorDistance(self:GetEnemy():GetPos(), self:GetPos()) < 50 and self:GetEnemy():Alive()) then --. decrease or increase the hitbox here
         self:GetEnemy():Kill()
+        print("Killed player")
+        self.loaded_sounds[2]:Stop()
+        self.loaded_sounds[2]:SetSoundLevel(0)
+        self.loaded_sounds[2]:Play()
+        if self.chasefunctionactive then
+            print("Killed whilst Abyssal was chasing or whilst relocating after a kill, setting self.escapedchases to -1")
+            self.escapedchases = -1 --. ChasePlayer() increments self.escapedchases by 1 as one of its last actions, correcting this variable to 0 in the process
+        else
+            print("Killed whilst Abyssal was not chasing and not relocating after a kill, setting self.escapedchases to 0")
+            self.escapedchases = 0 --. if a player is killed whilst ChasePlayer() is not being executed self.escapedchases will never be incremented - setting to 0 is appropriate for these cases
+        end
         self.stopchasing = true
         self:GoToRandomPoint()
     end
@@ -187,7 +200,7 @@ function ENT:StalkEnemy( options )
             end
         else
             print("STALK ENDED: SEEN BY PLAYER")
-            self:RandBehaviour() --. if the player is spotted, choose a behaviour. In Terminus, this is a coin flip between hiding (to later stalk) and chasing
+            self:RandBehaviour() --. if the player is spotted, choose a behaviour. in Terminus, this is a coin flip between hiding (to later stalk) and chasing
         end
         self:Sounds()
         coroutine.yield()
@@ -195,43 +208,43 @@ function ENT:StalkEnemy( options )
 	return "ok"
 end
 
-function ENT:AmIEnraged() --. See documentation for the effect of this function (explanation yet to be added, will be available later). May edit the ragecalc conditions later based on gameplay
+function ENT:AmIEnraged() --. see documentation for the effect of this function (explanation yet to be added, will be available later). may edit the ragecalc conditions later based on gameplay
     print("AmIEnraged function called")
-    print("Escaped chase count:", self.escapedchases)
     local ragecalc = math.random(1,20)
     print("ragecalc is", ragecalc)
     if self.escapedchases == 0 and ragecalc == 1 then --. 0.05 chance of becoming enraged
-        print("Returning true")
+        print("ragecalc == 1, returning true")
         return true
     elseif self.escapedchases == 1 and ragecalc <= 2 then --. 0.1 chance of becoming enraged
-        print("Returning true")
+        print("ragecalc <= 2, returning true")
         return true
     elseif self.escapedchases == 2 and ragecalc <= 6 then --. 0.3 chance of becoming enraged
-        print("Returning true")
+        print("ragecalc <= 6, returning true")
         return true
     elseif self.escapedchases == 3 and ragecalc <= 12 then --. 0.6 chance of becoming enraged
-        print("Returning true")
+        print("ragecalc <= 12, returning true")
         return true
     elseif self.escapedchases == 4 and ragecalc <= 16 then --. 0.8 chance of becoming enraged
-        print("Returning true")
+        print("ragecalc <= 16, returning true")
         return true
     elseif self.escapedchases == 5 and ragecalc <= 18 then --. 0.9 chance of becoming enraged
-        print("Returning true")
+        print("ragecalc <= 18, returning true")
         return true
     elseif self.escapedchases == 6 then --. 100% chance of becoming enraged
-        print("Returning true")
+        print("6 escaped chases, returning true")
         return true
     else
-        print("Returning false")
+        print("ragecalc too high, returning false. Pairs escapedchases:condition are 0:1, 1:2, 2:6, 3:12, 4:16, 5:18, 6:20")
         return false
     end
 end
 
 function ENT:ChasePlayer()
+    self.chasefunctionactive = true
+    
     local slowchoice = math.random(0, 3)
-    print("Chasing player, if 1 then enemy will slow down when too close", slowchoice) --. i.e. 25% chance of being nice to player
-    print("Current escaped chase count:", self.escapedchases)
-    print("ENRAGED BOOL:", self.enraged)
+    print("Chasing player, if 1 then Abyssal will slow down when close ", slowchoice) --. i.e. 25% chance of "playing" with player
+    print("Current escaped chase count: ", self.escapedchases)
 
     self.waiting = true
     self.chasing = true
@@ -243,11 +256,12 @@ function ENT:ChasePlayer()
     if self:AmIEnraged() then
         self.enraged = true
         print("Enraged mode activated")
-        self.escapedchases = 0
+        print("Setting self.escapedchases to -1")
+        self.escapedchases = -1 --. will be corrected to 0 at the end of this function
     end
 
     if !self.enraged then
-        self.loco:SetAcceleration(900) --. original: 375
+        self.loco:SetAcceleration(1200) --. original: 375
         self.loco:SetDesiredSpeed(500) --. original: 1000
     else --. i.e. enraged
         self.loco:SetAcceleration(1400) --. original: 700
@@ -288,15 +302,15 @@ function ENT:ChasePlayer()
 
         /* rolls a dice as to whether or not the enemy will slow down 
         when too close to give the player some room during a chase */
-        if self:VectorDistance(self:GetPos(), self:GetEnemy():GetPos()) < 150 and !self.enraged then
-            if slowchoice == 1 then
-                print("Slowing down to give player room")
-                self.loco:SetDesiredSpeed(300) --. original: 400
+        
+        if slowchoice == 1 then
+            if self:VectorDistance(self:GetPos(), self:GetEnemy():GetPos()) < 450 and !self.enraged then
+                self.loco:SetDesiredSpeed(350) --. original: 400
             else
                 self.loco:SetDesiredSpeed(500) --. maintain normal chase speed, original: 1000
             end
         end
-
+        
         if (!self:GetPlayerVisible() and chasing_timer > chasing_time) then
             self.stopchasing = true
         end
@@ -313,17 +327,15 @@ function ENT:ChasePlayer()
         self:Sounds()
         coroutine.yield()
 	end
-
+    
     print("Stopping chase")
-    if (!self.enraged) then
-        self.escapedchases = self.escapedchases + 1
-        print("Increasing escaped chases count, new:", self.escapedchases)
-    end
+    self.escapedchases = self.escapedchases + 1
+    print("Increasing escaped chases count, new:", self.escapedchases)
     
     self.enraged = false
     self:TeleportToRandom()
+    self.chasefunctionactive = false
 	return "ok"
-
 end
 
 local chase_sound_clock = 0
@@ -383,7 +395,7 @@ function ENT:Sounds()
             self.enrage_sounds[1]:SetSoundLevel(0)
             enraged_sound_time = SoundDuration("AbyssalEnraged.wav")
             self.enrage_sounds[1]:Play()
-            print("Played ENRAGED audio")
+            print("Played AbyssalEnraged.wav")
         end
     end
 
@@ -394,7 +406,7 @@ function ENT:Sounds()
             self.loaded_amb_sounds[1]:SetSoundLevel(0)
             amb_chase_sound_time = SoundDuration("AbyssalChasingAmbience.wav")
             self.loaded_amb_sounds[1]:Play()
-            print("Played chasing ambience")
+            print("Played AbyssalChasingAmbience.wav")
         end
         if (chase_sound_clock > chase_sound_time) then
             self.loaded_sounds[1]:Stop()
@@ -402,7 +414,7 @@ function ENT:Sounds()
             self.loaded_sounds[1]:SetSoundLevel(70)
             chase_sound_time = SoundDuration("AbyssalChasing.wav")
             self.loaded_sounds[1]:Play()
-            print("Played chasing frontal")
+            print("Played AbyssalChasing.wav")
         end
     end
 end
@@ -564,14 +576,13 @@ function ENT:Hide()
 
     -- roll a dice between going back to stalking or ambushing
     if choice == 2 then
-        print("Planning an ambush")
         self:Ambush()
     end
 
 end
 
 function ENT:Ambush()
-    print("Ambush at", self:GetPos())
+    print("Decided to ambush, ambush at ", self:GetPos())
     self.ambushing = true
     self.loco:SetDesiredSpeed(0) --. don't think this is necessary.
     self:StopAllAmbSounds()
@@ -582,7 +593,7 @@ function ENT:Ambush()
         ambushcounter = ambushcounter + FrameTime()
 
         if ambushcounter > 25 then
-            print("Ambush timer expired, now stalking")
+            print("Ambush timer expired, now stalking ")
             self:StalkEnemy()
         end
 
@@ -613,7 +624,7 @@ function ENT:TeleportToRandom()
     
     self:SetPos(spot)
 
-    print("teleported to spot "..spot.x.." "..spot.y.." "..spot.z)
+    print("Teleported to spot "..spot.x.." "..spot.y.." "..spot.z)
 
     self.waiting = false
     self.walking = false

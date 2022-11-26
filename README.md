@@ -29,8 +29,9 @@ Abyssal is now developed enough to be considered "version 1".
 
 # Links
 
-Demonstration Videos:
+Demonstration videos:
 
+Abyssal Nextbot V1 Demonstration 1
 https://www.youtube.com/watch?v=O60ZvZ6H3LA
 
 Nextbots:

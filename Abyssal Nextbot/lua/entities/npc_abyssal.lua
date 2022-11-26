@@ -83,19 +83,18 @@ end
 
 --adding the run behavior
 function ENT:RunBehaviour()
-
     if (self:HaveEnemy()) then
         self:TeleportToRandom()
     end
-
+    
     while (true) do
         if (self:HaveEnemy() and !self.waiting) then
-            print("STARTED STALK"); --. uncommented this
+            print("STARTED STALK");
             self:StalkEnemy()
         else
-            print("WAITING OR NO ENEMY"); --. uncommented this
+            print("WAITING OR NO ENEMY");
         end
-
+        
         coroutine.wait(2)
     end
 end
@@ -145,58 +144,58 @@ end
 
 function ENT:StalkEnemy( options )
     print("Stalking player")
-
+    
     self.waiting = true
     self.stalking = true
     self.chasing = false
     self.walking = false
-
+    
     --how long he waits before stalking
     self.pre_stalk_time = 15
     self.pre_stalk_timer = 0
-
-    self.loco:SetAcceleration(200) --. original: 200
-    self.loco:SetDesiredSpeed(300) --. original: 300
-
+    
+    self.loco:SetAcceleration(200)
+    self.loco:SetDesiredSpeed(300)
+    
 	local options = options or {}
 	self.path = Path("Chase")
 	self.path:SetMinLookAheadDistance( options.lookahead or 300 )
 	self.path:SetGoalTolerance( options.tolerance or 20 )
 	self.path:Compute(self, self:GetEnemy():GetPos())
-
+    
     local stalking_timer = 0
     local stalking_time = 120 --. how long (in seconds) abyssal stalks for before teleporting to a random location.
-
+    
     -- if his path is invalid, return false out of the function
 	if !self.path:IsValid() then
         print('Stalk failed')
         return "failed"
     end
-
+    
     self.LastPathRecompute = 0
-
+    
 	while self.path:IsValid() and self:HaveEnemy() and self.stalking do
         self:InstaGib()
         self.pre_stalk_timer = self.pre_stalk_timer + FrameTime()
-
+        
         if !self:GetPlayerVisible() then
             if (self.pre_stalk_timer > self.pre_stalk_time) then
                 if ( self.path:GetAge() > 0.1 ) then
                     self.path:Compute(self, self:GetEnemy():GetPos())
                 end
                 self.path:Update( self )
-
+                
                 if (CurTime() - self.LastPathRecompute > 0.1) then
                     self.LastPathRecompute = CurTime()
                     self:RecomputeTargetPath(self:GetEnemy():GetPos())
                 end
-
+                
                 if options.draw then self.path:Draw() end
-
+                
                 local stuckTimer = 0
                 local stuckTime = 1
                 stuckTimer = stuckTimer + FrameTime()
-
+                
                 if (stuckTimer > stuckTime) then
                     self:UnstickFromCeiling()
                     stuckTimer = 0
@@ -210,7 +209,7 @@ function ENT:StalkEnemy( options )
             end
         else
             print("STALK ENDED: SEEN BY PLAYER")
-            self:RandBehaviour() --. if the player is spotted, choose a behaviour. in Terminus, this is a coin flip between hiding (to later stalk) and chasing
+            self:RandBehaviour() --. if the player is spotted, choose between hiding and chasing - 1/3 and 2/3 chance respectively
         end
         self:Sounds()
         coroutine.yield()
@@ -218,7 +217,7 @@ function ENT:StalkEnemy( options )
 	return "ok"
 end
 
-function ENT:AmIEnraged() --. see documentation for the effect of this function (explanation yet to be added, will be available later). may edit the ragecalc conditions later based on gameplay
+function ENT:AmIEnraged() --. see documentation for the effect of this function (explanation yet to be added, will be available later)
     print("AmIEnraged function called")
     local ragecalc = math.random(1,20)
     print("ragecalc is", ragecalc)
@@ -253,87 +252,88 @@ function ENT:ChasePlayer()
     self.chasefunctionactive = true
     
     local slowchoice = math.random(0, 3)
-    print("Chasing player, if 1 then Abyssal will slow down when close ", slowchoice) --. i.e. 25% chance of "playing" with player
-    print("Current escaped chase count: ", self.escapedchases)
-
+    print("Chasing player, if 1 then Abyssal will slow down when close ", slowchoice) --. 25% chance of Abyssal "playing" with the player (/taunting)
+    print("Current escaped chase count:", self.escapedchases)
+    
     self.waiting = true
     self.chasing = true
     self.stalking = false
     self.walking = false
-
+    
     self.stopchasing = false
-
+    
     if self:AmIEnraged() then
         self.enraged = true
         print("Enraged mode activated")
         print("Setting self.escapedchases to -1")
         self.escapedchases = -1 --. will be corrected to 0 at the end of this function
     end
-
+    
     if !self.enraged then
-        self.loco:SetAcceleration(1200) --. original: 375
-        self.loco:SetDesiredSpeed(500) --. original: 1000
+        self.loco:SetAcceleration(1200)
+        self.loco:SetDesiredSpeed(500)
     else --. i.e. enraged
-        self.loco:SetAcceleration(1400) --. original: 700
-        self.loco:SetDesiredSpeed(3000) --. original: 2000
+        self.loco:SetAcceleration(1400)
+        self.loco:SetDesiredSpeed(3000)
     end
-
+    
     local options = options or {}
 	self.path = Path("Chase")
 	self.path:SetMinLookAheadDistance( options.lookahead or 300 )
 	self.path:SetGoalTolerance( options.tolerance or 20 )
 	self.path:Compute(self, self:GetEnemy():GetPos())
-
+    
 	if !self.path:IsValid() then
         return "failed"
     end
-
+    
     local chasing_time = 25
     local chasing_timer = 0
-
+    
     self.LastPathRecompute = 0
-
+    
 	while (self.path:IsValid() and !self.stopchasing) do
-
+        
         self:InstaGib()
-
+        
         chasing_timer = chasing_timer + FrameTime()
         if ( self.path:GetAge() > 0.1 ) then
             self.path:Compute(self, self:GetEnemy():GetPos())
         end
         self.path:Update( self )
-
+        
         if (CurTime() - self.LastPathRecompute > 0.1) then
             self.LastPathRecompute = CurTime()
             self:RecomputeTargetPath(self:GetEnemy():GetPos())
         end
-
+        
         if ( options.draw ) then self.path:Draw() end
-
-        /* rolls a dice as to whether or not the enemy will slow down 
-        when too close to give the player some room during a chase */
         
         if slowchoice == 1 then
             if self:VectorDistance(self:GetPos(), self:GetEnemy():GetPos()) < 450 and !self.enraged then
-                self.loco:SetDesiredSpeed(350) --. original: 400
+                self.loco:SetDesiredSpeed(350) --. if in slowmode and in a certain distance of player, slow down
             else
-                self.loco:SetDesiredSpeed(500) --. maintain normal chase speed, original: 1000
+                self.loco:SetDesiredSpeed(500) --. maintain normal chase speed
             end
         end
         
         if (!self:GetPlayerVisible() and chasing_timer > chasing_time) then
             self.stopchasing = true
+            self.loaded_amb_sounds[1]:Stop()
+            self.loaded_sounds[3]:Stop()
+            self.loaded_sounds[3]:SetSoundLevel(0)
+            self.loaded_sounds[3]:Play()
         end
-
+        
         local stuckTimer = 0
         local stuckTime = 1
         stuckTimer = stuckTimer + FrameTime()
-
+        
         if (stuckTimer > stuckTime) then
             self:UnstickFromCeiling()
             stuckTimer = 0
         end
-
+        
         self:Sounds()
         coroutine.yield()
 	end
@@ -358,7 +358,6 @@ local enraged_sound_clock = 0
 local enraged_sound_time = 0
 
 function ENT:Sounds()
-    
     amb_chase_sound_clock = amb_chase_sound_clock + FrameTime()
     chase_sound_clock = chase_sound_clock + FrameTime()
     enraged_sound_clock = enraged_sound_clock + FrameTime()
@@ -405,7 +404,6 @@ function ENT:Sounds()
             print("Played AbyssalEnraged.wav")
         end
     end
-    
 end
 
 function ENT:StopAllAmbSounds()
@@ -421,16 +419,15 @@ function ENT:StopAllSelfSounds()
 end
 
 function ENT:GoToRandomPoint()
-
     print("GoToRandomPoint called")
-
+    
     self.waiting = true
     self.walking = true
     self.chasing = false
     self.stalking = false
     
-    self.loco:SetAcceleration(900) --. original: 400
-    self.loco:SetDesiredSpeed(700) --. original: 700
+    self.loco:SetAcceleration(900)
+    self.loco:SetDesiredSpeed(700)
     
     local options = options or {}
 	self.path = Path("Chase")
@@ -438,72 +435,72 @@ function ENT:GoToRandomPoint()
 	self.path:SetGoalTolerance( options.tolerance or 10 )
     local spot_options = {pos = self:GetEnemy():GetPos(), radius = 10000, stepup = 5000, stepdown = 5000}
     local spot = self:FindSpot('random', spot_options)
-
+    
     --print ("spot is at "..spot.x.." "..spot.y.." "..spot.z.." and player is at "..self:GetEnemy():GetPos().x.." "..self:GetEnemy():GetPos().y.." "..self:GetEnemy():GetPos().z)
-
+    
 	self.path:Compute(self, spot)
-
+    
 	if ( !self.path:IsValid() ) then
         --print('failed')
         return "failed"
     end
-
+    
     local walking_time = 90
     local walking_timer = 0
     self.LastPathRecompute = 0
     local wait_to_tp = 0
     local wait_time = 15
-
+    
 	while ( self.path:IsValid() and self:HaveEnemy() and self.walking) do
-
+        
         self:InstaGib()
-
+        
         --print("WALKING AWAY")
             
         self.path:Update( self )
-
+        
         if (CurTime() - self.LastPathRecompute > 0.1) then
             self.LastPathRecompute = CurTime()
             self:RecomputeTargetPath(spot)
         end
-
+        
         if ( options.draw ) then self.path:Draw() end
-
+        
         local stuckTimer = 0
         local stuckTime = 1
         stuckTimer = stuckTimer + FrameTime()
-
+        
         if (stuckTimer > stuckTime) then
             self:UnstickFromCeiling()
             stuckTimer = 0
         end
-
+        
         if ( self.loco:IsStuck() ) then
             --print("stuck")
             --return "stuck"
         end
-
+        
         walking_timer = walking_timer + FrameTime()
         if (walking_timer > walking_time) then
             walking_timer = 0
             TeleportToRandom()
         end
-
+        
         if (!self:GetEnemy():Visible(self)) then
             wait_to_tp = wait_to_tp + FrameTime()
             if (wait_to_tp > wait_time) then
                 self:TeleportToRandom()
             end
         end
-
+        
         self:Sounds()
-
+        
         coroutine.yield()
 	end
-
+    
     self.walking = false
     self.waiting = false
-
+    
 	return "ok"
 end
 
@@ -514,23 +511,23 @@ function ENT:RecomputeTargetPath(path_target)
 	if (CurTime() - self.LastPathingInfraction < 5) then
 		return
 	end
-
+    
 	local targetPos = path_target
-
+    
 	-- Run toward the position below the entity we're targetting, since we can't fly.
 	trace.start = targetPos
 	trace.endpos = targetPos - VECTOR_HIGH
 	trace.filter = self:GetEnemy()
 	local tr = util.TraceEntity(trace, self:GetEnemy())
-
+    
 	-- Of course, we sure that there IS a "below the target."
 	if (tr.Hit and util.IsInWorld(tr.HitPos)) then
 		targetPos = tr.HitPos
 	end
-
+    
 	local rTime = SysTime()
 	self.path:Compute(self, targetPos)
-
+    
 	if (SysTime() - rTime > 0.005) then
 		self.LastPathingInfraction = CurTime()
 	end
@@ -539,52 +536,55 @@ end
 function ENT:RandBehaviour()
     self.waiting = true
     self.stalking = false
-    local choice = math.random(-1, 2) --. surely this could be math.random(0, 1)? still works the same though.
-
-    if choice > 0 then
+    local choice = math.random(1, 3) --. 1/3 chance of hiding, 2/3 chance of chasing
+    print("RandBehaviour() choice is", choice)
+    
+    if choice == 1 then
+        print("choice == 1 so choosing to hide.")
         self:Hide()
     else
+        print("choice != 1 so choosing to chase.")
         self:ChasePlayer()
     end
-
 end
 
 function ENT:Hide()
     print("Hiding")
     self:GoToRandomPoint()
-
-    local choice = math.random(1, 2)
-
-    -- roll a dice between going back to stalking or ambushing
-    if choice == 2 then
+    
+    local choice = math.random(1, 4) --. 1/4 chance of deciding to ambush, 3/4 chance of stalking
+    print("Hide() choice is", choice)
+    
+    if choice == 1 then
+        print("choice == 1 so choosing to ambush.")
         self:Ambush()
+    else
+        print("choice != 1 so choosing to return to stalking.")
     end
-
 end
 
 function ENT:Ambush()
-    print("Decided to ambush, ambush at ", self:GetPos())
+    print("Decided to ambush, ambush at", self:GetPos())
     self.ambushing = true
     self.loco:SetDesiredSpeed(0) --. don't think this is necessary.
     self:StopAllAmbSounds()
     self:StopAllSelfSounds()
-
+    
     local ambushcounter = 0
     while self.ambushing do
         ambushcounter = ambushcounter + FrameTime()
-
+        
         if ambushcounter > 25 then
-            print("Ambush timer expired, now stalking ")
+            print("Ambush timer expired, now stalking")
             self:StalkEnemy()
         end
-
+        
         if self:GetPlayerVisible() then
             self.ambushing = false
             self:ChasePlayer()
         end
         coroutine.yield()
     end
-
 end
 
 function ENT:TeleportToRandom()
@@ -604,9 +604,9 @@ function ENT:TeleportToRandom()
     end
     
     self:SetPos(spot)
-
+    
     print("Teleported to spot "..spot.x.." "..spot.y.." "..spot.z)
-
+    
     self.waiting = false
     self.walking = false
     self.chasing = false
@@ -615,7 +615,7 @@ end
 
 function ENT:UnstickFromCeiling()
 	if (self:IsOnGround()) then return end
-
+    
 	local myPos = self:GetPos()
 	local myHullMin, myHullMax = self:GetCollisionBounds()
 	local myHull = (myHullMax - myHullMin)
@@ -624,7 +624,7 @@ function ENT:UnstickFromCeiling()
 	trace.endpos = myHullTop
 	trace.filter = self
 	local upTrace = util.TraceLine(trace, self)
-
+    
 	if (upTrace.Hit and upTrace.HitNormal ~= vector_origin and upTrace.Fraction > 0.5) then
 		local unstuckPos = myPos + upTrace.HitNormal * (myHull.z * (1 - upTrace.Fraction))
 		self:SetPos(unstuckPos)

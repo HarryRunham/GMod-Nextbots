@@ -19,9 +19,11 @@ local MUSIC_abyss_PANIC_COUNT = 1 (from 8)
 Abandoned in favour of working on Abyssal.
 
 # Abyssal
-Heavily based off of "Terminus Nextbot" by syhgma, which itself is based off of "Gargitron NextBot" by Gargin. Terminus is a "stalker" nextbot, with behaviour more complex than many nextbots currently available. Image and audio changed (some sound files are original Terminus/Gargitron files, but seem to be unused so I haven't bothered changing them). Initial commit of code includes some minor differences to Terminus' code, mostly relating to how (and what) information is printed to the console. Another notable change is a fix to how Terminus was coded to count escaped chases - it double counted escaped chases before.
+Heavily based off of "Terminus Nextbot" by syhgma, which itself is based off of "Gargitron NextBot" by Gargin. Terminus is a "stalker" nextbot, with behaviour more complex than many nextbots currently available. Image and audio changed. Initial commit of code included some minor differences to Terminus' code, mostly relating to how (and what) information is printed to the console. Another notable change is a fix to how Terminus was coded to count escaped chases - it was double counting escaped chases.
 
-Comments with notation --. are my own. Anything else currently means the comment was made by a previous developer.
+At this point in development Abyssal and Terminus are relatively different experiences - they share the same basic "idea" but not much beyond that.
+
+Comments with notation --. are my own. Any other notation currently means the comment was made by a previous developer.
 
 # Links
 

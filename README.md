@@ -25,7 +25,15 @@ At this point in development Abyssal and Terminus are relatively different exper
 
 Comments with notation --. are my own. Any other notation currently means the comment was made by a previous developer.
 
+Abyssal is now developed enough to be considered "version 1".
+
 # Links
+
+Demonstration Videos:
+
+https://www.youtube.com/watch?v=O60ZvZ6H3LA
+
+Nextbots:
 
 Smiley (NEXTBOT): https://steamcommunity.com/sharedfiles/filedetails/?id=1639300664
 

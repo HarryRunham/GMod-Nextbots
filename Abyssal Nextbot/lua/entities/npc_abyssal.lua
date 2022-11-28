@@ -309,8 +309,8 @@ function ENT:ChasePlayer()
         
         if ( options.draw ) then self.path:Draw() end
         
-        if slowchoice == 1 then
-            if self:VectorDistance(self:GetPos(), self:GetEnemy():GetPos()) < 450 and !self.enraged then
+        if slowchoice == 1 and !self.enraged then
+            if self:VectorDistance(self:GetPos(), self:GetEnemy():GetPos()) < 450 then
                 self.loco:SetDesiredSpeed(350) --. if in slowmode and in a certain distance of player, slow down
             else
                 self.loco:SetDesiredSpeed(500) --. maintain normal chase speed

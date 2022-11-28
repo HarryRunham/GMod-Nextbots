@@ -31,8 +31,17 @@ Abyssal is now developed enough to be considered "version 1".
 
 Demonstration videos:
 
-Abyssal Nextbot V1 Demonstration 1
-https://www.youtube.com/watch?v=O60ZvZ6H3LA
+Abyssal Demonstration - Stalking, Hiding, Killing
+
+https://www.youtube.com/watch?v=IrWNbzbCA4Q
+
+Abyssal Demonstration - Escaping a Chase
+
+https://www.youtube.com/watch?v=fOjAJmsitmQ
+
+Abyssal Demonstration - Enraged Mode
+
+https://www.youtube.com/watch?v=MWa-uWLxJYA
 
 Nextbots:
 
